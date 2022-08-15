@@ -1,0 +1,8 @@
+
+`	java:S112"FDefine and throw a dedicated exception instead of using a generic one.(Ò‚Òιόÿÿÿÿ
+`	java:S112"FDefine and throw a dedicated exception instead of using a generic one.(Ò‚Òιόÿÿÿÿ
+o	java:S120"ZRename this package name to match the regular expression '^[a-z_]+(\.[a-z_][a-z0-9_]*)*$'.(δΏς
+Z
+java:S2147"DCombine this catch with the one at line 26, which has the same body.(σϋμ
+F
+java:S1128")Remove this unused import 'java.io.File'.(†Π¥Ε8±ΰ¬©0
