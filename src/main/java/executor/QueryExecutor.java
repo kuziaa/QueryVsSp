@@ -66,6 +66,9 @@ public class QueryExecutor {
     }
 
     public boolean compareResults(List<List<String>> otherResult) {
+        System.out.println("num of col current: " + result.size());
+        System.out.println("num of col other: " + otherResult.size());
+
         for (int i = 0; i < result.size(); i++) {
             List<String> lineOfResult1 = result.get(i);
             List<String> lineOfResult2 = otherResult.get(i);

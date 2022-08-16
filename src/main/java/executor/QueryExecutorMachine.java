@@ -40,6 +40,8 @@ public class QueryExecutorMachine {
         resultTitle.addAll(parametersReader.getTitles());
         resultTitle.add("Query Time");
         resultTitle.add("SP Time");
+        resultTitle.add("Query Raws");
+        resultTitle.add("SP Raws");
         resultTitle.add("Results Are The Same");
     }
 
@@ -59,18 +61,18 @@ public class QueryExecutorMachine {
             resultLine.addAll(parametersLine);
             resultLine.add("" + queryExecutor.getExecutingTime());
             resultLine.add("" + spExecutor.getExecutingTime());
+            resultLine.add("" + queryExecutor.getResult().size());
+            resultLine.add("" + spExecutor.getResult().size());
 
 //            resultAsList.add(parametersLine);
             resultLine.add("" + queryExecutor.compareResults(spExecutor.getResult()));
             resultAsList.add(resultLine);
         }
-
     }
 
     public void extractReport() {
         for (List<String> resultLine: resultAsList) {
             System.out.println(resultLine);
         }
-
     }
 }
