@@ -1,7 +1,5 @@
 package executor;
 
-import dbConnection.SQLDatabaseConnection;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,16 +7,47 @@ import java.util.List;
 public class QueryExecutor {
 
     private final String query;
-    private final String db;
-    private final List<String> parameters;
     private ResultSet rs;
     private List<List<String>> result = new ArrayList<>();
     private long executingTime;
+    private Connection connection;
+    private PreparedStatement preparedStatement;
 
-    public QueryExecutor(String query, List<String> parameters) {
+
+    public QueryExecutor(String query, Connection connection) {
         this.query = query;
-        this.db = parameters.get(0);
-        this.parameters = parameters;
+        this.connection = connection;
+        setupPreparedStatement();
+    }
+
+    private void setupPreparedStatement() {
+        try {
+            preparedStatement = connection.prepareStatement(query);
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void setParam(int paramNumber, String param, String type) {
+        try {
+            switch (type) {
+                case "int":
+                    preparedStatement.setInt(paramNumber, Integer.parseInt(param));
+                    break;
+                case "double":
+                    preparedStatement.setDouble(paramNumber, Double.parseDouble(param));
+                case "str":
+                    preparedStatement.setString(paramNumber, param);
+                    break;
+                case "date":
+                    preparedStatement.setDate(paramNumber, java.sql.Date.valueOf(param));
+                    break;
+                case "dateTime":
+                    preparedStatement.setTimestamp(paramNumber, java.sql.Timestamp.valueOf(param));
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void executeQuery() {
@@ -26,23 +55,20 @@ public class QueryExecutor {
     }
 
     public void executeQuery(String query) {
-        Connection con = SQLDatabaseConnection.getConnection(db);
 
-        try (PreparedStatement pstm = con.prepareStatement(query)) {
-
-            for (int i = 1; i < parameters.size(); i++) {
-                pstm.setString(i, parameters.get(i));
-            }
-
+        try {
             long startTime = System.currentTimeMillis();
-            rs =pstm.executeQuery();
+            rs = preparedStatement.executeQuery();
             executingTime = System.currentTimeMillis() - startTime;
-
-            resultSetToList();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
 
+        try {
+            resultSetToList();
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void resultSetToList() throws SQLException {

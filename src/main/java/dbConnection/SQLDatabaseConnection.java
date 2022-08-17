@@ -10,13 +10,6 @@ public class SQLDatabaseConnection {
     private static Connection connection;
 
     public static Connection getConnection(String db) {
-        if (connection == null) {
-            connection = getNewConnection(db);
-        }
-        return connection;
-    }
-
-    private static Connection getNewConnection(String db) {
         String connectionUrl =
                 "jdbc:sqlserver://MSQ-NBW-6894\\G3SQL01:1433;"
                         + "database=" + db + ";"

@@ -1,43 +1,41 @@
 package executor;
 
-import queryReader.ParametersReader;
-import queryReader.QueryReader;
+import dbConnection.SQLDatabaseConnection;
+import utility.FilesWorker;
 
-import java.sql.SQLException;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
 
 public class QueryExecutorMachine {
 
-    String queryFile;
-    String spFile;
-    String paramFile;
-    QueryReader queryReader;
-    QueryReader spReader;
-    ParametersReader parametersReader;
-    List<List<String>> resultAsList;
-    List<String> resultTitle;
+    String queryFileName;
+    String spFileName;
+    String paramFileName;
+    String query;
+    String sp;
+    List<List<String>> parameters;
+    List<List<String>> resultAsList = new ArrayList<>();
+    List<String> resultTitle = new ArrayList<>();
 
-    String clearCache = "DBCC DROPCLEANBUFFERS;\n" +
+    String clearCacheQuery = "DBCC DROPCLEANBUFFERS;\n" +
             "DBCC FREEPROCCACHE;\n" +
             "select 0";
 
-    public QueryExecutorMachine(String queryFile, String spFile, String paramFile) {
-        this.queryFile = queryFile;
-        this.spFile = spFile;
-        this.paramFile = paramFile;
-        resultTitle = new ArrayList<>();
+    public QueryExecutorMachine(String queryFileName, String spFileName, String paramFileName) {
+        this.queryFileName = queryFileName;
+        this.spFileName = spFileName;
+        this.paramFileName = paramFileName;
         init();
 
     }
 
     private void init() {
-        queryReader = new QueryReader(queryFile);
-        spReader = new QueryReader(spFile);
-        parametersReader = new ParametersReader(paramFile);
-        resultAsList = new ArrayList<>();
-        resultTitle = new ArrayList<>();
-        resultTitle.addAll(parametersReader.getTitles());
+        query = FilesWorker.fileToString(queryFileName);
+        sp = FilesWorker.fileToString(spFileName);
+        parameters = FilesWorker.csvToList(paramFileName);
+        resultTitle.addAll(parameters.get(0));
+        parameters.remove(0);
         resultTitle.add("Query Time");
         resultTitle.add("SP Time");
         resultTitle.add("Query Raws");
@@ -46,14 +44,28 @@ public class QueryExecutorMachine {
     }
 
     public void runCompare() {
-        for (List<String> parametersLine : parametersReader.getParameters()) {
+        for (List<String> parametersLine : parameters) {
+            Connection connection = SQLDatabaseConnection.getConnection(parametersLine.get(0));
 
-            QueryExecutor queryExecutor = new QueryExecutor(queryReader.getQuery(), parametersLine);
-            QueryExecutor spExecutor = new QueryExecutor(spReader.getQuery(), parametersLine);
-            QueryExecutor clearCacheExecutor = new QueryExecutor(clearCache, List.of(parametersLine.get(0)));
+            QueryExecutor queryExecutor = new QueryExecutor(query, connection);
+            QueryExecutor spExecutor = new QueryExecutor(sp, connection);
+            QueryExecutor clearCacheExecutor = new QueryExecutor(clearCacheQuery, connection);
 
+            queryExecutor.setParam(1, parametersLine.get(1), "dateTime");
+            queryExecutor.setParam(2, parametersLine.get(2), "dateTime");
+            queryExecutor.setParam(3, parametersLine.get(3), "date");
+            queryExecutor.setParam(4, parametersLine.get(1), "dateTime");
+            queryExecutor.setParam(5, parametersLine.get(2), "dateTime");
+//            queryExecutor.setParam(6, parametersLine.get(4), "int");
+//            queryExecutor.setParam(7, parametersLine.get(5), "int");
             queryExecutor.executeQuery();
             clearCacheExecutor.executeQuery();
+
+            spExecutor.setParam(1, parametersLine.get(1), "dateTime");
+            spExecutor.setParam(2, parametersLine.get(2), "dateTime");
+            spExecutor.setParam(3, parametersLine.get(3), "date");
+            spExecutor.setParam(4, parametersLine.get(4), "int");
+            spExecutor.setParam(5, parametersLine.get(5), "int");
             spExecutor.executeQuery();
             clearCacheExecutor.executeQuery();
 
@@ -64,7 +76,6 @@ public class QueryExecutorMachine {
             resultLine.add("" + queryExecutor.getResult().size());
             resultLine.add("" + spExecutor.getResult().size());
 
-//            resultAsList.add(parametersLine);
             resultLine.add("" + queryExecutor.compareResults(spExecutor.getResult()));
             resultAsList.add(resultLine);
         }

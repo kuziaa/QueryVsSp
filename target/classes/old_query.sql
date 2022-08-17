@@ -1,10 +1,3 @@
-DECLARE
-@startDate DATETIME = ?,
-@endDate DATETIME = ?,
-@snapshotDate DATETIME = ?,
-@forecastGroupId INT = ?,
-@accomClassId INT = ?
-
 select
     Occupancy_DT,
     SUM(Solds)
@@ -32,10 +25,10 @@ from
                     join Accom_Class AC on AT.Accom_Class_ID = AC.Accom_Class_ID
                     join Mkt_Seg_Forecast_Group MSFG on MSFG.Mkt_Seg_ID = GM.Mkt_Seg_ID
                 where
-                    GB.Occupancy_DT between @startDate
-                  and @endDate
+                    GB.Occupancy_DT between ?
+                  and ?
                   and MSFG.Status_ID = 1
-                  and GB.Occupancy_DT > @snapshotDate
+                  and GB.Occupancy_DT > ?
             ) A
         group by
             Occupancy_DT,
@@ -55,8 +48,8 @@ from
             join Accom_Class AC on AC.Accom_Class_ID = AT.Accom_Class_ID
             join Mkt_Seg_Forecast_Group MSFG on MSFG.Mkt_Seg_ID = RN.Mkt_Seg_ID
         where
-            RN.Occupancy_DT between @startDate
-          and @endDate
+            RN.Occupancy_DT between ?
+          and ?
           and MSFG.Status_ID = 1
           and RN.Individual_Status NOT IN ('XX', 'NS', 'CANCELLED', 'NO_SHOW', 'NO SHOW')
           AND RN.Arrival_DT != RN.Departure_DT
@@ -67,8 +60,6 @@ from
     ) A
 where
     1 = 1
-  and A.Forecast_Group_ID = @forecastGroupId
-  and A.Accom_Class_ID = @accomClassId
 group by
     Occupancy_DT
 order by
